@@ -7,7 +7,7 @@ const TABS = [
   { key: 'actor', label: 'Por actor', fn: reportPorActor },
 ]
 
-export default function Reports() {
+export default function Reports({ onPick }) {
   const [tab, setTab] = useState('genero')
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
@@ -24,6 +24,9 @@ export default function Reports() {
     <div>
       <div className="ficha-num">LISTADOS</div>
       <h1 className="detail-title" style={{ fontSize: 26 }}>Listados del fichero</h1>
+      <p className="report-hint" style={{ opacity: 0.6, marginTop: -4, fontSize: 13 }}>
+        Tocá una fila para ver esas películas en el catálogo.
+      </p>
 
       <div className="report-tabs">
         {TABS.map((t) => (
@@ -49,7 +52,13 @@ export default function Reports() {
           </thead>
           <tbody>
             {rows.map(([name, count]) => (
-              <tr key={name}>
+              <tr
+                key={name}
+                className="report-row"
+                style={{ cursor: 'pointer' }}
+                title={`Ver "${name}" en el catálogo`}
+                onClick={() => onPick && onPick(tab, name)}
+              >
                 <td>{name}</td>
                 <td>
                   <div className="report-bar-cell">

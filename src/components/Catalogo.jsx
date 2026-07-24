@@ -2,10 +2,12 @@ import { useEffect, useState, useCallback } from 'react'
 import { fetchPeliculas, fetchGeneros, fetchFormatos, PAGE_SIZE } from '../lib/api'
 import MovieCard from './MovieCard'
 
-export default function Catalogo({ onOpen, refreshKey }) {
-  const [search, setSearch] = useState('')
-  const [genero, setGenero] = useState('')
+export default function Catalogo({ onOpen, refreshKey, initialFilter }) {
+  const [search, setSearch] = useState(initialFilter?.search || '')
+  const [genero, setGenero] = useState(initialFilter?.genero || '')
   const [formato, setFormato] = useState('')
+  const [director, setDirector] = useState(initialFilter?.director || '')
+  const [actor, setActor] = useState(initialFilter?.actor || '')
   const [page, setPage] = useState(0)
   const [data, setData] = useState([])
   const [count, setCount] = useState(0)
@@ -23,7 +25,7 @@ export default function Catalogo({ onOpen, refreshKey }) {
     setLoading(true)
     setError(null)
     try {
-      const { data, count } = await fetchPeliculas({ search, genero, formato, page })
+      const { data, count } = await fetchPeliculas({ search, genero, formato, director, actor, page })
       setData(data)
       setCount(count)
     } catch (e) {
@@ -31,11 +33,11 @@ export default function Catalogo({ onOpen, refreshKey }) {
     } finally {
       setLoading(false)
     }
-  }, [search, genero, formato, page])
+  }, [search, genero, formato, director, actor, page])
 
   useEffect(() => { load() }, [load, refreshKey])
 
-  useEffect(() => { setPage(0) }, [search, genero, formato])
+  useEffect(() => { setPage(0) }, [search, genero, formato, director, actor])
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE))
 
@@ -59,6 +61,29 @@ export default function Catalogo({ onOpen, refreshKey }) {
         </select>
         <span className="result-count">{count} resultado{count === 1 ? '' : 's'}</span>
       </div>
+
+      {(director || actor) && (
+        <div
+          className="active-filter"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0 14px',
+            padding: '8px 14px', borderRadius: 8,
+            background: 'rgba(212,175,90,0.12)', border: '1px solid rgba(212,175,90,0.35)',
+            fontSize: 14,
+          }}
+        >
+          <span>
+            {director ? 'Director' : 'Actor'}: <strong>{director || actor}</strong>
+          </span>
+          <button
+            className="btn-secondary"
+            style={{ padding: '2px 10px', fontSize: 13 }}
+            onClick={() => { setDirector(''); setActor('') }}
+          >
+            ✕ quitar filtro
+          </button>
+        </div>
+      )}
 
       {loading && <div className="loader-line">buscando en el fichero…</div>}
       {error && <div className="loader-line">Error: {error}</div>}
