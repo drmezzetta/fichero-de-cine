@@ -12,6 +12,7 @@ export default function App() {
   const [editingId, setEditingId] = useState(null)
   const [total, setTotal] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [catalogoFilter, setCatalogoFilter] = useState(null)
 
   useEffect(() => {
     supabase.from('peliculas').select('*', { count: 'exact', head: true }).then(({ count }) => {
@@ -41,12 +42,34 @@ export default function App() {
     setView('form')
   }
 
+  // Desde "Listados": abrir el catálogo filtrado por género / director / actor
+  function pickFromReport(tab, name) {
+    const filter =
+      tab === 'genero' ? { genero: name }
+      : tab === 'director' ? { director: name }
+      : { actor: name }
+    setCatalogoFilter(filter)
+    setSelectedId(null)
+    setEditingId(null)
+    setView('catalogo')
+  }
+
+  // Navegación desde el Header: al ir al Catálogo se limpia el filtro activo
+  function navFromHeader(v) {
+    if (v === 'catalogo') setCatalogoFilter(null)
+    setView(v)
+    setSelectedId(null)
+    setEditingId(null)
+  }
+
   return (
     <div>
-      <Header view={view} setView={(v) => { setView(v); setSelectedId(null); setEditingId(null) }} total={total} onNew={openNew} />
+      <Header view={view} setView={navFromHeader} total={total} onNew={openNew} />
 
       <div className="shell">
-        {view === 'catalogo' && <Catalogo onOpen={openDetail} refreshKey={refreshKey} />}
+        {view === 'catalogo' && (
+          <Catalogo onOpen={openDetail} refreshKey={refreshKey} initialFilter={catalogoFilter} />
+        )}
 
         {view === 'detalle' && selectedId != null && (
           <MovieDetail
@@ -65,7 +88,7 @@ export default function App() {
           />
         )}
 
-        {view === 'listados' && <Reports />}
+        {view === 'listados' && <Reports onPick={pickFromReport} />}
       </div>
     </div>
   )
