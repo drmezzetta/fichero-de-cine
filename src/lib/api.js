@@ -2,7 +2,7 @@ import { supabase } from './supabaseClient'
 
 const PAGE_SIZE = 24
 
-export async function fetchPeliculas({ search = '', genero = '', formato = '', page = 0 }) {
+export async function fetchPeliculas({ search = '', genero = '', formato = '', director = '', actor = '', page = 0 }) {
   let query = supabase.from('peliculas').select('*', { count: 'exact' })
 
   if (search.trim()) {
@@ -13,6 +13,12 @@ export async function fetchPeliculas({ search = '', genero = '', formato = '', p
   }
   if (genero) query = query.eq('genero', genero)
   if (formato) query = query.eq('formato', formato)
+  if (director) query = query.eq('director', director)
+  if (actor) {
+    // valor entre comillas dobles para tolerar comas/espacios en el nombre
+    const v = `"${actor.replace(/"/g, '')}"`
+    query = query.or(`actor1.eq.${v},actor2.eq.${v},actor3.eq.${v}`)
+  }
 
   const from = page * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
